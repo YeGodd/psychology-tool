@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心理课互动工具生成器</title>
+<style>
+    :root {
+        --bg: #f5f3f7;
+        --card: #ffffff;
+        --primary: #7c5cbf;
+        --primary-light: #a78bfa;
+        --primary-dark: #5b3e9e;
+        --game: #f59e0b;
+        --game-light: #fef3c7;
+        --test: #3b82f6;
+        --test-light: #dbeafe;
+        --discuss: #10b981;
+        --discuss-light: #d1fae5;
+        --text: #1e1b2e;
+        --text-secondary: #6b6580;
+        --border: #e5e0eb;
+        --shadow: 0 4px 24px rgba(124, 92, 191, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 720px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+        text-align: center;
+    }
+    .header .icon {
+        font-size: 48px;
+        margin-bottom: 8px;
+    }
+    .header h1 {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary), #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .header p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        margin-top: 4px;
+    }
+
+    /* ---------- Card ---------- */
+    .card {
+        background: var(--card);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    /* ---------- Input ---------- */
+    .input-group label {
+        display: block;
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 8px;
+        color: var(--text);
+    }
+    .input-group input {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        font-size: 16px;
+        font-family: inherit;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: #faf9fb;
+        outline: none;
+    }
+    .input-group input:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 4px rgba(124, 92, 191, 0.1);
+    }
+    .input-group input::placeholder {
+        color: #b8b2cc;
+    }
+
+    /* ---------- Mode Selector ---------- */
+    .mode-selector {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .mode-btn {
+        flex: 1;
+        padding: 14px 12px;
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        background: #faf9fb;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        transition: all 0.2s;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .mode-btn .emoji {
+        display: block;
+        font-size: 28px;
+        margin-bottom: 4px;
+    }
+    .mode-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    .mode-btn.game { border-color: #fcd34d; }
+    .mode-btn.game.selected {
+        background: var(--game-light);
+        border-color: var(--game);
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+    }
+
+    .mode-btn.test { border-color: #93c5fd; }
+    .mode-btn.test.selected {
+        background: var(--test-light);
+        border-color: var(--test);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+    }
+
+    .mode-btn.discuss { border-color: #6ee7b7; }
+    .mode-btn.discuss.selected {
+        background: var(--discuss-light);
+        border-color: var(--discuss);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+    }
+
+    /* ---------- Generate Button ---------- */
+    .generate-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        font-size: 18px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.25s;
+        box-shadow: 0 4px 16px rgba(124, 92, 191, 0.3);
+        letter-spacing: 0.5px;
+        margin-top: 6px;
+    }
+    .generate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(124, 92, 191, 0.4);
+    }
+    .generate-btn:active {
+        transform: scale(0.98);
+    }
+    .generate-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    .generate-btn .spinner {
+        display: inline-block;
+        width: 18px; height: 18px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Result Area ---------- */
+    .result-card {
+        display: none;
+    }
+    .result-card.visible {
+        display: block;
+    }
+
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+    .result-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .badge-game { background: var(--game-light); color: #92400e; }
+    .badge-test { background: var(--test-light); color: #1e40af; }
+    .badge-discuss { background: var(--discuss-light); color: #065f46; }
+
+    .result-content {
+        background: #faf9fb;
+        border-radius: 14px;
+        padding: 24px;
+        font-size: 15px;
+        line-height: 1.8;
+        max-height: 500px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+    }
+    .result-content h3 {
+        font-size: 18px;
+        margin: 16px 0 8px;
+        color: var(--primary-dark);
+    }
+    .result-content h3:first-child { margin-top: 0; }
+    .result-content ul, .result-content ol {
+        padding-left: 20px;
+        margin: 8px 0;
+    }
+    .result-content li {
+        margin-bottom: 4px;
+    }
+    .result-content .highlight-box {
+        background: #fff;
+        border-left: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin: 12px 0;
+    }
+    .result-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+    }
+    .result-content th, .result-content td {
+        border: 1px solid var(--border);
+        padding: 10px 14px;
+        text-align: left;
+    }
+    .result-content th {
+        background: var(--primary-light);
+        color: #fff;
+    }
+
+    /* ---------- Download Button ---------- */
+    .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+    }
+    .download-btn {
+        flex: 1;
+        padding: 12px 20px;
+        background: #fff;
+        border: 2px solid var(--primary);
+        border-radius: 12px;
+        color: var(--primary-dark);
+        font-size: 15px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .download-btn:hover {
+        background: var(--primary);
+        color: #fff;
+    }
+    .copy-btn {
+        padding: 12px 20px;
+        background: #fff;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        color: var(--text-secondary);
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .copy-btn:hover {
+        border-color: var(--text-secondary);
+        color: var(--text);
+    }
+    .copy-btn.copied {
+        border-color: var(--discuss);
+        color: var(--discuss);
+        background: var(--discuss-light);
+    }
+
+    /* ---------- Toast ---------- */
+    .toast {
+        position: fixed;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e1b2e;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 100;
+    }
+    .toast.show {
+        opacity: 1;
+    }
+
+    /* ---------- Footer ---------- */
+    .footer {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    @media (max-width: 500px) {
+        .mode-selector {
+            flex-direction: column;
+        }
+        .actions {
+            flex-direction: column;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="icon">🧠</div>
+        <h1>心理课互动工具生成器</h1>
+        <p>输入主题，选择互动形式，一键生成课堂互动方案</p>
+    </div>
+
+    <!-- Input Card -->
+    <div class="card">
+        <div class="input-group">
+            <label for="topicInput">📝 输入心理课主题</label>
+            <input
+                id="topicInput"
+                type="text"
+                placeholder="例如：情绪管理、人际沟通、自我认知、压力应对……"
+                autocomplete="off"
+            >
+        </div>
+
+        <!-- Mode Selector -->
+        <div class="mode-selector" id="modeSelector">
+            <button class="mode-btn game selected" data-mode="game">
+                <span class="emoji">🎮</span>游戏
+            </button>
+            <button class="mode-btn test" data-mode="test">
+                <span class="emoji">📋</span>测试
+            </button>
+            <button class="mode-btn discuss" data-mode="discuss">
+                <span class="emoji">💬</span>讨论
+            </button>
+        </div>
+
+        <!-- Generate Button -->
+        <button class="generate-btn" id="generateBtn">
+            ✨ 生成互动方案
+        </button>
+    </div>
+
+    <!-- Result Card -->
+    <div class="card result-card" id="resultCard">
+        <div class="result-header">
+            <span class="result-badge" id="resultBadge">🎮 游戏</span>
+            <span style="color:var(--text-secondary);font-size:13px;" id="resultTopic"></span>
+        </div>
+        <div class="result-content" id="resultContent"></div>
+        <div class="actions">
+            <button class="download-btn" id="downloadBtn">
+                📥 下载方案
+            </button>
+            <button class="copy-btn" id="copyBtn">
+                📋 复制内容
+            </button>
+        </div>
+    </div>
+
+    <div class="footer">
+        💡 提示：生成的内容可直接用于课堂教学，支持下载为 Markdown 文件
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+    // ---------- DOM refs ----------
+    const topicInput   = document.getElementById('topicInput');
+    const modeSelector = document.getElementById('modeSelector');
+    const generateBtn  = document.getElementById('generateBtn');
+    const resultCard   = document.getElementById('resultCard');
+    const resultBadge  = document.getElementById('resultBadge');
+    const resultTopic  = document.getElementById('resultTopic');
+    const resultContent= document.getElementById('resultContent');
+    const downloadBtn  = document.getElementById('downloadBtn');
+    const copyBtn      = document.getElementById('copyBtn');
+    const toastEl      = document.getElementById('toast');
+
+    let currentMode = 'game';
+    let currentResult = '';       // raw markdown
+    let currentTopic = '';
+
+    // ---------- Mode selection ----------
+    modeSelector.addEventListener('click', function(e) {
+        const btn = e.target.closest('.mode-btn');
+        if (!btn) return;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        currentMode = btn.dataset.mode;
+    });
+
+    // ---------- Toast ----------
+    let toastTimer;
+    function showToast(msg) {
+        clearTimeout(toastTimer);
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
+
+    // ---------- Generate content ----------
+    function buildGamePlan(topic) {
+        const title = `「${topic}」课堂互动游戏`;
+        return `## ${title}
+
+### 🎯 活动目标
+通过互动游戏帮助学生理解**${topic}**的核心概念，在体验中学习、在分享中成长。
+
+### 👥 适用人数
+20–40 人（可分组进行，每组 5–8 人）
+
+### ⏱ 建议时长
+15–20 分钟
+
+### 🧩 材料准备
+- A4 白纸若干（每人一张）
+- 彩色马克笔（每组一套）
+- 情境卡片（见下方附录，提前打印）
+- 计时器
+
+### 📖 游戏规则
+
+1. **分组**：将全班随机分成 4–6 组，每组选举一名"记录员"。
+2. **抽卡**：每组随机抽取一张与 **${topic}** 相关的情境卡片。
+3. **讨论与创作**（5 分钟）：
+   - 小组围绕情境讨论：遇到这种情况，你会怎么想、怎么做？
+   - 用纸笔画出或写出你们的"应对方案图"。
+4. **展示与分享**（每组 2 分钟）：
+   - 每组派代表上台展示方案。
+   - 其他组用"**👍 我欣赏……**"和"**💡 我建议……**"句式给予反馈。
+5. **总结提炼**（3 分钟）：
+   - 老师归纳各组方案中的共性智慧。
+   - 引出 **${topic}** 的心理学知识点。
+
+### 🃏 情境卡片（附录）
+
+| 编号 | 情境描述 |
+|------|----------|
+| 1 | 考试前一天晚上，你发现自己还有很多内容没复习…… |
+| 2 | 好朋友误会了你，在背后说了你的坏话…… |
+| 3 | 被老师当众点名批评，你感到非常委屈…… |
+| 4 | 小组合作时，有成员总是不参与讨论…… |
+| 5 | 父母因为成绩问题对你大发雷霆…… |
+| 6 | 你鼓起勇气上台演讲，却突然忘词了…… |
+
+> 💡 **教师提示**：可根据实际教学需要替换情境，使内容更贴合当前班级情况。
+
+### 🏆 积分与奖励
+- 每完成一次分享，小组获得 ⭐ 一颗星。
+- 给出精彩反馈的同学可为小组赢得额外 ⭐。
+- 累计最多 ⭐ 的小组获得"心灵智慧之星"称号。
+
+### 📝 课后延伸
+请学生写一段 100 字左右的感悟：**"通过今天的游戏，关于 ${topic}，我最大的收获是……"**
+`;
+    }
+
+    function buildTestPlan(topic) {
+        const title = `「${topic}」心理小测验`;
+        return `## ${title}
+
+### 🎯 测验目的
+帮助学生了解自己在**${topic}**方面的现状，激发自我觉察与反思。
+
+### ⏱ 建议时长
+10–15 分钟（含评分与解读）
+
+### 📋 指导语
+
+> 以下共有 **8 道题目**，请根据自己的真实情况作答。没有"对"或"错"的答案，重要的是诚实面对自己。
+>
+> 评分标准：
+> - **1** = 完全不符合
+> - **2** = 不太符合
+> - **3** = 部分符合
+> - **4** = 比较符合
+> - **5** = 完全符合
+
+---
+
+### 📝 测验题目
+
+**第 1 题**
+当遇到与 **${topic}** 相关的困扰时，我能清楚地识别自己的情绪。
+> 1 　 2 　 3 　 4 　 5
+
+**第 2 题**
+我愿意主动向他人表达自己在 **${topic}** 方面的真实感受。
+> 1 　 2 　 3 　 4 　 5
+
+**第 3 题**
+面对挫折，我通常能找到至少一种积极的应对方式。
+> 1 　 2 　 3 　 4 　 5
+
+**第 4 题**
+我相信通过学习和练习，自己在 **${topic}** 方面的能力可以提升。
+> 1 　 2 　 3 　 4 　 5
+
+**第 5 题**
+当看到他人遇到类似的困难时，我能感同身受并愿意提供帮助。
+> 1 　 2 　 3 　 4 　 5
+
+**第 6 题**
+我能意识到自己在 **${topic}** 方面的行为模式及其背后的原因。
+> 1 　 2 　 3 　 4 　 5
+
+**第 7 题**
+在需要时，我愿意主动寻求老师、朋友或家人的支持。
+> 1 　 2 　 3 　 4 　 5
+
+**第 8 题**
+我有信心将今天学到的内容应用到日常生活中。
+> 1 　 2 　 3 　 4 　 5
+
+---
+
+### 📊 计分与解读
+
+| 总分范围 | 等级 | 解读与建议 |
+|----------|------|------------|
+| 8–16 分 | 🌱 **萌芽期** | 你在 ${topic} 方面还有很大的成长空间。没关系，觉察是改变的第一步！建议多参与课堂互动，向身边同学学习。 |
+| 17–28 分 | 🌿 **成长期** | 你已经具备一定的意识和能力，但仍有提升空间。试着在日常生活中多实践、多反思。 |
+| 29–40 分 | 🌳 **成熟期** | 你在 ${topic} 方面表现良好！能否成为班级里的"心灵小导师"，帮助其他同学一起成长？ |
+
+### 💬 课堂讨论建议
+- 你对自己哪道题的得分最意外？为什么？
+- 你希望在哪道题对应的方面获得更多帮助？
+- 小组分享：每人选一道"最想提升的题目"，同伴给出具体建议。
+
+### 📝 课后延伸
+请写下你的**行动承诺**："从今天起，为了在 ${topic} 方面变得更好，我会做的一件小事是______。"
+`;
+    }
+
+    function buildDiscussPlan(topic) {
+        const title = `「${topic}」课堂讨论方案`;
+        return `## ${title}
+
+### 🎯 讨论目标
+通过结构化讨论，帮助学生深入思考**${topic}**，倾听多元观点，培养批判性思维和共情能力。
+
+### 👥 适用人数
+全班（4–6 人一组为佳）
+
+### ⏱ 建议时长
+20–25 分钟
+
+### 📖 讨论流程
+
+---
+
+#### 🔥 热身环节（3 分钟）
+
+> **快问快答**：老师说出一个与 **${topic}** 相关的关键词（如"压力"、"沟通"、"自信"），学生用**一个词**说出脑海中浮现的第一个联想。不做评判，只做收集。
+
+---
+
+#### 💬 第一轮：小组讨论（8 分钟）
+
+每组从下方选择一个讨论题，围绕其展开讨论。记录员做好笔记。
+
+| 编号 | 讨论题 |
+|------|--------|
+| A | 在你的生活中，**${topic}** 曾经给你带来过怎样的挑战？你是如何应对的？ |
+| B | 你认为同龄人在 **${topic}** 方面最常见的误区是什么？为什么？ |
+| C | 如果让你给低年级的同学写一封关于 **${topic}** 的"过来人建议信"，你会写什么？ |
+| D | 你观察到的影视剧 / 社交媒体中，有哪些关于 **${topic}** 的描述是不准确的？ |
+
+---
+
+#### 🎤 第二轮：小组汇报（8 分钟）
+
+每组用 **1.5–2 分钟**汇报讨论精华：
+
+- **A 组** → 分享一个最触动人心的故事。
+- **B 组** → 指出一个最常见的误区并澄清。
+- **C 组** → 朗读"过来人建议信"中最精彩的一段。
+- **D 组** → 分析一个媒体偏差案例。
+
+---
+
+#### 🤔 第三轮：全班思辨（5 分钟）
+
+老师抛出一个"两难问题"，全班自由发言：
+
+> **"如果保护一个人的心理健康，意味着要对 ta 隐瞒真相——你赞同这样做吗？为什么？"**
+
+（可根据 **${topic}** 调整具体问题。）
+
+讨论规则：
+- 🎙 发言前举手，每人每次不超过 1 分钟。
+- 👂 回应他人时先说"我听到你说……"，再表达自己的观点。
+- 🚫 不评判他人的经历和感受。
+
+---
+
+### 🧑‍🏫 教师总结要点
+
+1. 肯定学生的真诚分享，强调**保密原则**（课堂上分享的私人经历不外传）。
+2. 梳理讨论中出现的**关键心理学概念**（如"情绪 ABC 理论""共情""成长型思维"等，根据主题选择）。
+3. 送给学生一句**金句总结**：
+   > *"关于 ${topic}，没有标准答案——但每一次真诚的对话，都是离答案更近一步。"*
+
+---
+
+### 📝 课后延伸
+
+**"一句话收获"便签墙**：每人用便利贴写一句"今天讨论中我最有感触的一句话"，贴在教室指定位置，供全班课后浏览。
+
+---
+
+### 🃏 备用讨论卡（如时间充裕）
+
+| 编号 | 备用问题 |
+|------|----------|
+| 1 | 如果明天开始，你完全不用担心 ${topic}，你的生活会有哪些不同？ |
+| 2 | 你觉得学校和家庭还可以做些什么，帮助学生更好地应对 ${topic}？ |
+| 3 | 十年后的你，会对现在的你说一句什么话？ |
+`;
+    }
+
+    function generateResult(topic, mode) {
+        switch (mode) {
+            case 'game':    return buildGamePlan(topic);
+            case 'test':    return buildTestPlan(topic);
+            case 'discuss': return buildDiscussPlan(topic);
+            default:        return '';
+        }
+    }
+
+    const modeLabels = {
+        game:    { emoji: '🎮', text: '游戏', cls: 'badge-game' },
+        test:    { emoji: '📋', text: '测试', cls: 'badge-test' },
+        discuss: { emoji: '💬', text: '讨论', cls: 'badge-discuss' },
+    };
+
+    const modeFileNames = {
+        game:    '互动游戏方案',
+        test:    '心理测验方案',
+        discuss: '课堂讨论方案',
+    };
+
+    // ---------- Simple markdown → HTML ----------
+    function markdownToHtml(md) {
+        let html = md
+            // Escape HTML
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            // Headings
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+            // Bold
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            // Horizontal rules
+            .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #e5e0eb;margin:16px 0;">')
+            // Blockquotes
+            .replace(/^&gt; (.+)$/gm, '<div class="highlight-box">$1</div>')
+            // Unordered list items
+            .replace(/^- (.+)$/gm, '<li>$1</li>')
+            // Ordered list items
+            .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+            // Tables — very lightweight: detect | separated lines
+            .replace(/^\| (.+) \|$/gm, (match) => {
+                const cells = match.replace(/^\| /, '').replace(/ \|$/, '').split(' | ');
+                const tag = match.includes('---') ? 'th' : 'td';
+                return '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+            });
+
+        // Wrap consecutive <li> in <ul>
+        html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+        // Wrap consecutive <tr> in <table>
+        html = html.replace(/((?:<tr>.*<\/tr>\n?)+)/g, '<table>$1</table>');
+
+        // Paragraphs: wrap remaining non-tag lines
+        html = html.replace(/^(?!<[a-z]|$)(.+)$/gm, '<p>$1</p>');
+
+        // Collapse empty <p>
+        html = html.replace(/<p>\s*<\/p>/g, '');
+
+        return html;
+    }
+
+    // ---------- Generate ----------
+    generateBtn.addEventListener('click', function() {
+        const topic = topicInput.value.trim();
+        if (!topic) {
+            showToast('⚠️ 请先输入心理课主题');
+            topicInput.focus();
+            return;
+        }
+
+        // Loading state
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="spinner"></span>正在生成……';
+
+        // Simulate a short delay for UX feel
+        setTimeout(() => {
+            currentTopic = topic;
+            currentResult = generateResult(topic, currentMode);
+
+            const label = modeLabels[currentMode];
+            resultBadge.textContent = label.emoji + ' ' + label.text;
+            resultBadge.className = 'result-badge ' + label.cls;
+            resultTopic.textContent = '主题：' + topic;
+            resultContent.innerHTML = markdownToHtml(currentResult);
+            resultCard.classList.add('visible');
+
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '✨ 生成互动方案';
+
+            // Scroll result into view
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 600);
+    });
+
+    // ---------- Download ----------
+    downloadBtn.addEventListener('click', function() {
+        if (!currentResult) return;
+        const fileName = `「${currentTopic}」${modeFileNames[currentMode] || '方案'}.md`;
+        const blob = new Blob([currentResult], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('✅ 已下载：' + fileName);
+    });
+
+    // ---------- Copy ----------
+    copyBtn.addEventListener('click', function() {
+        if (!currentResult) return;
+        navigator.clipboard.writeText(currentResult).then(() => {
+            copyBtn.textContent = '✅ 已复制';
+            copyBtn.classList.add('copied');
+            showToast('📋 内容已复制到剪贴板');
+            setTimeout(() => {
+                copyBtn.textContent = '📋 复制内容';
+                copyBtn.classList.remove('copied');
+            }, 2000);
+        }).catch(() => {
+            showToast('⚠️ 复制失败，请手动选择复制');
+        });
+    });
+
+    // ---------- Enter key triggers generate ----------
+    topicInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            generateBtn.click();
+        }
+    });
+
+})();
+</script>
+
+</body>
+</html>
